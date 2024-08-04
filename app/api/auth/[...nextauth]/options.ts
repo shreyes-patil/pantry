@@ -25,6 +25,7 @@ export const options : NextAuthOptions = {
                     placeholder: "your password"
                 }
 
+                
             },
 
             // async function to authorize/retrieve credentials that we recieved
