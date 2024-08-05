@@ -7,16 +7,8 @@ import { Card } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ListOrderedIcon, XIcon } from "lucide-react"
-import { db } from "../firebaseConfig"
-import { collection, addDoc, updateDoc, deleteDoc, getDocs, doc } from "firebase/firestore"
-
-interface PantryItem {
-  id: number;
-  name: string;
-  quantity: number;
-  expirationDate: string;
-  notificationType: string;
-}
+import { addPantryItem, updatePantryItem, deletePantryItem, getPantryItems } from "../services/firebasebackend"
+import { PantryItem } from "../models/pantryItem"
 
 export function Dashboard() {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([])
@@ -31,16 +23,14 @@ export function Dashboard() {
   const [sortBy, setSortBy] = useState<keyof PantryItem>("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
 
-  const pantryCollection = collection(db, 'pantryItems')
-
   useEffect(() => {
     const fetchPantryItems = async () => {
-      const querySnapshot = await getDocs(pantryCollection)
-      const items: PantryItem[] = querySnapshot.docs.map(doc => ({
-        id: parseInt(doc.id),
-        ...doc.data() as Omit<PantryItem, 'id'>
-      }))
-      setPantryItems(items)
+      try {
+        const items = await getPantryItems()
+        setPantryItems(items)
+      } catch (error) {
+        console.error("Error fetching items:", error)
+      }
     }
     fetchPantryItems()
   }, [])
@@ -48,8 +38,8 @@ export function Dashboard() {
   const handleAddItem = async () => {
     if (newItem.name.trim() !== "") {
       try {
-        const docRef = await addDoc(pantryCollection, newItem)
-        const newItemWithId = { ...newItem, id: parseInt(docRef.id) }
+        const id = await addPantryItem(newItem)
+        const newItemWithId: PantryItem = { id: id.toString(), ...newItem } // Ensure id is a string
         setPantryItems([...pantryItems, newItemWithId])
         setNewItem({ name: "", quantity: 1, expirationDate: "", notificationType: "expiration" })
         setShowAddForm(false)
@@ -59,20 +49,18 @@ export function Dashboard() {
     }
   }
 
-  const handleEditItem = async (id: number, updates: Partial<PantryItem>) => {
+  const handleEditItem = async (id: string, updates: Partial<PantryItem>) => {
     try {
-      const docRef = doc(db, 'pantryItems', id.toString())
-      await updateDoc(docRef, updates)
+      await updatePantryItem(id, updates)
       setPantryItems(pantryItems.map(item => item.id === id ? { ...item, ...updates } : item))
     } catch (error) {
       console.error("Error updating item:", error)
     }
   }
 
-  const handleDeleteItem = async (id: number) => {
+  const handleDeleteItem = async (id: string) => {
     try {
-      const docRef = doc(db, 'pantryItems', id.toString())
-      await deleteDoc(docRef)
+      await deletePantryItem(id)
       setPantryItems(pantryItems.filter(item => item.id !== id))
     } catch (error) {
       console.error("Error deleting item:", error)
@@ -214,7 +202,10 @@ export function Dashboard() {
             {sortedItems.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
-                  <Input value={item.name} onChange={(e) => handleEditItem(item.id, { name: e.target.value })} />
+                  <Input
+                    value={item.name}
+                    onChange={(e) => handleEditItem(item.id, { name: e.target.value })}
+                  />
                 </TableCell>
                 <TableCell>
                   <Input

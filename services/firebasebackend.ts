@@ -4,29 +4,27 @@ import { PantryItem } from '../models/pantryItem';
 
 const pantryCollection = collection(db, 'pantryItems');
 
-export const addPantryItem = async (item: Omit<PantryItem, 'id'>) => {
+export const addPantryItem = async (item: Omit<PantryItem, 'id'>): Promise<PantryItem> => {
   const docRef = await addDoc(pantryCollection, item);
-  const newItem = { id: parseInt(docRef.id), ...item };  // Convert string ID to number
-  await updateDoc(docRef, newItem);  // Update the document to include the numeric ID
-  return newItem.id;
+  return { id: docRef.id, ...item }; // Ensure id is a string
 };
 
-export const updatePantryItem = async (id: number, updates: Partial<PantryItem>) => {
-  const docRef = doc(db, 'pantryItems', id.toString());  // Convert number ID to string
+export const updatePantryItem = async (id: string, updates: Partial<PantryItem>): Promise<void> => {
+  const docRef = doc(db, 'pantryItems', id);
   await updateDoc(docRef, updates);
 };
 
-export const deletePantryItem = async (id: number) => {
-  const docRef = doc(db, 'pantryItems', id.toString());  // Convert number ID to string
+export const deletePantryItem = async (id: string): Promise<void> => {
+  const docRef = doc(db, 'pantryItems', id);
   await deleteDoc(docRef);
 };
 
-export const getPantryItems = async () => {
+export const getPantryItems = async (): Promise<PantryItem[]> => {
   const querySnapshot = await getDocs(pantryCollection);
   const items: PantryItem[] = [];
   querySnapshot.forEach((doc) => {
     const data = doc.data() as DocumentData;
-    items.push({ id: parseInt(doc.id), ...data } as PantryItem);  // Convert string ID to number
+    items.push({ id: doc.id, ...data } as PantryItem); // Ensure id is a string
   });
   return items;
 };

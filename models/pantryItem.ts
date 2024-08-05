@@ -1,6 +1,6 @@
 // models/pantryItem.ts
 export interface PantryItem {
-    id: number;
+    id: string;
     name: string;
     quantity: number;
     expirationDate: string;
