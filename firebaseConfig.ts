@@ -4,13 +4,13 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Your Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyB5N1IDqjNY8YF_0olRhqSO6gGr_Qa9XW0",
-  authDomain: "pantry-cd52f.firebaseapp.com",
-  projectId: "pantry-cd52f",
-  storageBucket: "pantry-cd52f.appspot.com",
-  messagingSenderId: "357606899624",
-  appId: "1:357606899624:web:437e0e23f25f889168a79d",
-  measurementId: "G-9GNZNDMJ4Y"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
